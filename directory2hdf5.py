@@ -54,7 +54,7 @@ class DirectoryReader(object):
         hdf5path = None
         suffix_path = []
         tmp = fullpath
-        while tmp != '/':
+        while '/' in tmp:
             dirname = osp.dirname(tmp)
             basename = osp.basename(tmp)
             hdf5path = osp.join(dirname, basename + '.hdf5')
@@ -68,6 +68,8 @@ class DirectoryReader(object):
     def read(self, fullpath, to_numpy=True):
         assert '.npy' in fullpath, "Only Support .npy"
         hdf5path, suffixpath = self.findHdf5(fullpath)
+        if hdf5path == None : 
+            raise Exception("Hdf5 can't be found, Try np.load() ; but not implemented, contact xiongkun")
         if hdf5path not in self.dirname2h5file:
             print("Loading", hdf5path)
             f = h5py.File(hdf5path+'.hdf5', 'r')
@@ -85,20 +87,25 @@ class DirectoryReader(object):
 import sys
 if __name__ == "__main__":
     """
-        单元测试
+        Directory 2 Hdf5
     """
     print ("Start Converse:")
     dir_path = sys.argv[1]
-    print ("Directory Name:", dir_path)
-    directory2hdf5(dir_path)
+    if dir_path[-1] == '/': dir_path = dir_path[:-1]
+    print ("Input Path:", dir_path)
+    if '.npy'  not in dir_path:
+        print ("Convert Directory to HDF5")
+        directory2hdf5(dir_path)
+    else: 
+        print ("Read npy file")
+        reader = DirectoryReader()
+        dataset = reader.read(dir_path)
+        print (dataset.shape)
 
     # --------------------
 
-    reader = DirectoryReader()
-    dataset = reader.read('/home/xiongkun/Output/ProposalNet/referclef_val/features/ag4f5when3r.npy')
-    print (dataset.shape)
-    dataset = reader.read('/home/xiongkun/Output/ProposalNet/referclef_val/features/ag9bKiPYX9y.npy')
-    print (dataset.shape)
+    #dataset = reader.read('/home/xiongkun/Output/ProposalNet/referclef_val/features/ag9bKiPYX9y.npy')
+    #print (dataset.shape)
 
 
     
